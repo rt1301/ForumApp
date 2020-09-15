@@ -91,7 +91,7 @@ app.get("/f/:channel/:id",(req, res)=>{
     });
 });
 // Edit Post Route
-app.get("/f/:channel/:id/edit",isLoggedIn,(req, res)=>{
+app.get("/f/:channel/:id/edit",checkPostOwnership,(req, res)=>{
     Post.findById(req.params.id,(err,foundPost)=>{
         if(err)
         {
@@ -104,7 +104,8 @@ app.get("/f/:channel/:id/edit",isLoggedIn,(req, res)=>{
         }
     });
 });
-app.put("/f/:channel/:id",isLoggedIn,(req, res)=>{
+// Update post route
+app.put("/f/:channel/:id",checkPostOwnership,(req, res)=>{
     Post.findByIdAndUpdate(req.params.id,req.body.post,(err,updatedPost)=>{
         if(err)
         {
@@ -118,7 +119,7 @@ app.put("/f/:channel/:id",isLoggedIn,(req, res)=>{
     });
 });
 // Delete Post route
-app.delete("/f/:channel/:id",isLoggedIn,(req, res)=>{
+app.delete("/f/:channel/:id",checkPostOwnership,(req, res)=>{
     Post.findByIdAndRemove(req.params.id,(err)=>{
         if(err)
         {
@@ -179,7 +180,7 @@ app.post("/f/:channel/:id/comments/new",isLoggedIn,(req, res)=>{
     });
 });
 // Edit Comment
-app.get("/f/:channel/:postId/comments/:id/edit",isLoggedIn,(req, res)=>{
+app.get("/f/:channel/:postId/comments/:id/edit",checkCommentOwnership,(req, res)=>{
     Comment.findById(req.params.id,(err,foundComment)=>{
         if(err)
         {
@@ -192,7 +193,8 @@ app.get("/f/:channel/:postId/comments/:id/edit",isLoggedIn,(req, res)=>{
         }
     });
 });
-app.put("/f/:channel/:postId/comments/:id",isLoggedIn,(req, res)=>{
+// Update Route
+app.put("/f/:channel/:postId/comments/:id",checkCommentOwnership,(req, res)=>{
     Comment.findByIdAndUpdate(req.params.id,req.body.comment,(err,updatedComment)=>{
         if(err)
         {
@@ -206,7 +208,7 @@ app.put("/f/:channel/:postId/comments/:id",isLoggedIn,(req, res)=>{
     });
 });
 // Delete Comment Route
-app.delete("/f/:channel/:postId/comments/:id",isLoggedIn,(req,res)=>{
+app.delete("/f/:channel/:postId/comments/:id",checkCommentOwnership,(req,res)=>{
     Comment.findByIdAndRemove(req.params.id,(err)=>{
         if(err)
         {
@@ -269,8 +271,9 @@ app.get("/logout",function(req, res)
 {
     req.logout();
     req.flash("success","You are successfully logged out");
-	res.redirect("/login");
+	res.redirect("/");
 });
+// MiddleWares
 // Logged in middleware
 function isLoggedIn(req, res, next)
 {
@@ -281,5 +284,76 @@ function isLoggedIn(req, res, next)
     req.flash("error","Please Login First");
 	res.redirect("/login");	
 		
+}
+// Post ownership MiddleWare
+function checkPostOwnership (req, res, next)
+{
+	if(req.isAuthenticated())
+		{
+			Post.findById(req.params.id,function(err, foundPost)
+			{
+		if(err)
+			{
+				req.flash("error","Post not found");
+				res.redirect("back");
+			}
+		else
+			{
+				// Added this block, to check if foundPost exists, and if it doesn't to throw an error via connect-flash and send us back to the homepage
+            if (!foundPost) 
+			{
+                    req.flash("error", "Item not found.");
+                    return res.redirect("back");
+			}
+            // If the upper condition is true this will break out of the middleware and prevent the code below to crash our application
+ 
+            if(foundPost.author.id.equals(req.user._id)) 
+			{
+                next();
+            } 
+			else 
+			{
+                req.flash("error", "You don't have permission to do that");
+                res.redirect("back");
+            }
+			}
+		});
+		}
+	else
+		{
+			req.flash("error","You need to be logged in to do that");
+			res.redirect("back");
+		}
+}
+// Check CommentOwnership middleware
+function checkCommentOwnership(req, res, next)
+{
+	if(req.isAuthenticated())
+		{
+			Comment.findById(req.params.comment_id,function(err, foundComment)
+    {
+		if(err)
+			{
+				res.redirect("back");
+			}
+		else
+			{
+				if(foundComment.author.id.equals(req.user._id))
+					{
+						next();
+					}
+				else
+					{
+						req.flash("error","You do not have permission to do that");
+						res.redirect("back");
+					}
+			}
+	});
+		}
+	else
+		{
+			req.flash("error","You need to be logged in to do that");
+			res.redirect("back");
+		}
 }
 app.listen(3000,()=>{console.log('Server is running')});
