@@ -52,6 +52,7 @@ app.get("/",(req,res)=>{
     });
     
 });
+// Posts Routes
 // Create Post route
 app.get("/f/:id/posts/create",isLoggedIn,(req,res)=>{
     res.render("posts/new");
@@ -61,7 +62,8 @@ app.post("/",isLoggedIn,(req, res)=>{
         id: req.user._id,
         username: req.user.username
     }
-    Post.create(req.body.post,(err,newPost)=>{
+    var post = {title:req.body.post.title,description:req.body.post.description,channel:req.body.post.channel,author:author};
+    Post.create(post,(err,newPost)=>{
         if(err)
         {
             req.flash("error",err.message);
@@ -69,12 +71,98 @@ app.post("/",isLoggedIn,(req, res)=>{
         }
         else
         {
-            console.log(newPost);
             res.redirect("/");
         }
     });
     
 });
+// Show Post Route
+app.get("/f/:channel/:id",isLoggedIn,(req, res)=>{
+    Post.findById(req.params.id).populate("comments").exec((err,foundPost)=>{
+        if(err)
+        {
+            req.flash("error",err.message);
+            return res.redirect("back");
+        }
+        else
+        {
+            res.render("posts/show",{post:foundPost});
+        }
+    });
+});
+// Edit Post Route
+app.get("/f/:channel/:id/edit",isLoggedIn,(req, res)=>{
+    Post.findById(req.params.id,(err,foundPost)=>{
+        if(err)
+        {
+            req.flash("error",err.message);
+            return res.redirect("back");
+        }
+        else
+        {
+            res.render("posts/edit",{post:foundPost});
+        }
+    });
+});
+app.put("/f/:channel/:id",isLoggedIn,(req, res)=>{
+    Post.findByIdAndUpdate(req.params.id,req.body.post,(err,updatedPost)=>{
+        if(err)
+        {
+            req.flash("error",err.message);
+            return res.redirect("back");
+        }
+        else
+        {
+            res.redirect("/f/"+req.params.channel+"/"+req.params.id);
+        }
+    });
+});
+// Comment Routes
+app.get("/f/:channel/:id/comments/new",isLoggedIn,(req, res)=>{
+    Post.findById(req.params.id,(err,foundPost)=>{
+        if(err)
+        {
+            req.flash("error",err.message);
+            return res.redirect("back");
+        }
+        else
+        {
+            res.render("comments/new",{post:foundPost});
+        }
+    });
+});
+app.post("/f/:channel/:id/comments/new",isLoggedIn,(req, res)=>{
+    Post.findById(req.params.id,(err,foundPost)=>{
+        if(err)
+        {
+            req.flash("error",err.message);
+            return res.redirect("back");
+        }
+        else
+        {
+            Comment.create(req.body.comment,(err,comment)=>{
+                if(err)
+                {
+                req.flash("error",err.message);
+                return res.redirect("back");
+                }
+                else
+                {
+                    comment.author.id = req.user._id;
+                    comment.author.username = req.user.username;
+                    comment.parents.push(comment._id);
+                    comment.markModified('parents');
+                    comment.save();
+                    foundPost.comments.push(comment);
+                    foundPost.markModified('comments');
+                    foundPost.save();
+                    req.flash("success","Successfully added comment");
+                    res.redirect("/f/"+req.params.channel+"/"+req.params.id);
+                }
+            })
+        }
+    })
+})
 // ================
 // AUTH ROUTES
 // ================

@@ -1,2 +1,37 @@
 <%-include("../partials/header.ejs")%>
+<div class="container">
+    <div class="row">
+        <div class="col s12">
+            <h3 class="center-align"><%=post.title%></h3>
+            <div class="card">
+                <div class="card-content">
+                    <p><%=post.description%></p>
+                    <h5>By: <%=post.author.username%></h5>
+                </div>
+                <div class="card-action">
+                    <a href="/f/<%=post.channel%>/<%=post._id%>/edit" class="btn waves-effect orange lighten-1  white-text">Edit</a>
+                    <form action="/f/<%=post.channel%>/<%=post._id%>?_method=DELETE" style="display: inline;">
+                        <button class="btn waves-effect red lighten-1 white-text">Delete</button>
+                    </form>
+                    <a href="/f/<%=post.channel%>/<%=post._id%>/comments/new" class="btn waves-effect blue lighten-1  white-text">Add Comment</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <%if(post.comments.length!=0){%>
+        <%for(var i=0;i<post.comments.length;i++){%>
+            <h5>Comments</h5>
+            <div class="row">
+                <div class="col s12">
+                    <div class="card">
+                        <div class="card-content">
+                            <h6><strong><%=post.comments[i].text%></strong></h6>
+                            <p>By: <strong><%=post.comments[i].author.username%></strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <%}%>
+    <%}%>
+</div>
 <%-include("../partials/footer.ejs")%>
