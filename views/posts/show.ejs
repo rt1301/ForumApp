@@ -10,7 +10,7 @@
                 </div>
                 <div class="card-action">
                     <a href="/f/<%=post.channel%>/<%=post._id%>/edit" class="btn waves-effect orange lighten-1  white-text">Edit</a>
-                    <form action="/f/<%=post.channel%>/<%=post._id%>?_method=DELETE" style="display: inline;">
+                    <form action="/f/<%=post.channel%>/<%=post._id%>?_method=DELETE" method="POST" style="display: inline;">
                         <button class="btn waves-effect red lighten-1 white-text">Delete</button>
                     </form>
                     <a href="/f/<%=post.channel%>/<%=post._id%>/comments/new" class="btn waves-effect blue lighten-1  white-text">Add Comment</a>
@@ -27,6 +27,12 @@
                         <div class="card-content">
                             <h6><strong><%=post.comments[i].text%></strong></h6>
                             <p>By: <strong><%=post.comments[i].author.username%></strong></p>
+                        </div>
+                        <div class="card-action">
+                            <a href="/f/<%=post.channel%>/<%=post._id%>/comments/<%=post.comments[i]._id%>/edit" class="btn waves-effect orange lighten-1  white-text">Edit</a>
+                            <form action="/f/<%=post.channel%>/<%=post._id%>/comments/<%=post.comments[i]._id%>?_method=DELETE" method="POST" style="display: inline;">
+                                <button class="btn waves-effect red lighten-1 white-text">Delete</button>
+                            </form>
                         </div>
                     </div>
                 </div>

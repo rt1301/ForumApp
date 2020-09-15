@@ -77,7 +77,7 @@ app.post("/",isLoggedIn,(req, res)=>{
     
 });
 // Show Post Route
-app.get("/f/:channel/:id",isLoggedIn,(req, res)=>{
+app.get("/f/:channel/:id",(req, res)=>{
     Post.findById(req.params.id).populate("comments").exec((err,foundPost)=>{
         if(err)
         {
@@ -117,7 +117,22 @@ app.put("/f/:channel/:id",isLoggedIn,(req, res)=>{
         }
     });
 });
+// Delete Post route
+app.delete("/f/:channel/:id",isLoggedIn,(req, res)=>{
+    Post.findByIdAndRemove(req.params.id,(err)=>{
+        if(err)
+        {
+            req.flash("error",err.message);
+            return res.redirect("back");
+        }
+        else
+        {
+            res.redirect("/");
+        }
+    });
+});
 // Comment Routes
+// Create New Comment
 app.get("/f/:channel/:id/comments/new",isLoggedIn,(req, res)=>{
     Post.findById(req.params.id,(err,foundPost)=>{
         if(err)
@@ -159,10 +174,52 @@ app.post("/f/:channel/:id/comments/new",isLoggedIn,(req, res)=>{
                     req.flash("success","Successfully added comment");
                     res.redirect("/f/"+req.params.channel+"/"+req.params.id);
                 }
-            })
+            });
         }
-    })
-})
+    });
+});
+// Edit Comment
+app.get("/f/:channel/:postId/comments/:id/edit",isLoggedIn,(req, res)=>{
+    Comment.findById(req.params.id,(err,foundComment)=>{
+        if(err)
+        {
+            req.flash("error",err.message);
+            return res.redirect("back");
+        }
+        else
+        {
+            res.render("comments/edit",{comment:foundComment,id:req.params.postId,channel:req.params.channel});
+        }
+    });
+});
+app.put("/f/:channel/:postId/comments/:id",isLoggedIn,(req, res)=>{
+    Comment.findByIdAndUpdate(req.params.id,req.body.comment,(err,updatedComment)=>{
+        if(err)
+        {
+            req.flash("error",err.message);
+            return res.redirect("back");
+        }
+        else
+        {
+            res.redirect("/f/"+req.params.channel+"/"+req.params.postId);
+        }
+    });
+});
+// Delete Comment Route
+app.delete("/f/:channel/:postId/comments/:id",isLoggedIn,(req,res)=>{
+    Comment.findByIdAndRemove(req.params.id,(err)=>{
+        if(err)
+        {
+            req.flash("error",err.message);
+            return res.redirect("back");
+        }
+        else
+        {
+            req.flash("success","Comment Deleted");
+            res.redirect("/f/"+req.params.channel+"/"+req.params.postId);
+        }
+    });
+});
 // ================
 // AUTH ROUTES
 // ================

@@ -1,12 +1,12 @@
 <%-include("../partials/header.ejs")%>
 <div class="row">
-    <form action="/f/<%=post.channel%>/<%=post._id%>/comments/new" class="col s12" method="POST">
-        <h3 class="center-align">Create new Comment</h3>
+    <form action="/f/<%=channel%>/<%=id%>/comments/<%=comment._id%>?_method=PUT" class="col s12" method="POST">
+        <h3 class="center-align">Edit Comment</h3>
     <div class="container">
         <div class="row">
             <div class="col s12 input-field">
                 <label for="">Comment</label>
-                <input type="text" name="comment[text]">
+                <input type="text" name="comment[text]" value="<%=comment.text%>">
             </div>
         </div>
         <div class="row">
@@ -14,7 +14,7 @@
                 <button class="btn waves-effect waves-light" type="submit" name="action">Submit
                     <i class="material-icons right">send</i>
                 </button>
-                <p>Go <a href="/f/<%=post.channel%>/<%=post._id%>">back</a></p>
+                <p>Go <a href="/f/<%=channel%>/<%=id%>">back</a></p>
             </div>
         </div>
     </div>
