@@ -314,6 +314,32 @@ app.delete("/f/:channel/:postId/comments/:id",checkCommentOwnership,(req,res)=>{
        }
    })
 });
+// Voting route
+app.post("/f/:channel/:postId/comments/:id/vote",isLoggedIn,(req, res)=>{
+    Comment.findById(req.params.id,(err,foundComment)=>{
+        if(err)
+        {
+            console.log(err);
+        }
+        else
+        {
+            var value = Object.values(req.body)[0];
+            if(value === 'upvote')
+            {
+                foundComment.vote++;
+                foundComment.markModified('vote');
+                foundComment.save();
+            }
+            else
+            {
+                foundComment.vote--;
+                foundComment.markModified('vote');
+                foundComment.save();
+            }
+            res.redirect("/f/"+req.params.channel+"/"+req.params.postId);
+        }
+    })
+})
 // ================
 // AUTH ROUTES
 // ================
