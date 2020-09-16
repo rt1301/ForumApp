@@ -1,22 +1,36 @@
 <%-include("partials/header.ejs")%>
-<h1>Front Page</h1>
+<h3 class="center-align">Welcome to Forum</h3>
 <div class="container">
     <div class="row">
-        <div class="col s12 m8">
-            <%for(var i=0;i<posts.length;i++){%>
-                <div class="row">
-                    <div class="col s12">
-                        <div class="card">
-                            <div class="card-content">
-                                <h5><%=posts[i].title%></h5>
-                                <h6><%=posts[i].author.username%></h6>
-                            </div>
-                            <div class="card-action">
-                                <a href="/f/<%=posts[i].channel%>/<%=posts[i]._id%>" class="waves-effect blue lighten-1 white-text btn">View</a>
+        <div class="col s10 m10">
+            <%if(posts.length>0){%>
+                <%for(var i=0;i<posts.length;i++){%>
+                    <div class="row">
+                        <div class="col s12">
+                            <div class="card">
+                                <div class="card-content">
+                                    <h5><%=posts[i].title%></h5>
+                                    <h6>By: <strong><%=posts[i].author.username%></strong></h6>
+                                </div>
+                                <div class="card-action">
+                                    <a href="/f/<%=posts[i].channel%>/<%=posts[i]._id%>" class="waves-effect blue lighten-1 white-text btn">View</a>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                <%}%>
+            <%}%>
+        </div>
+        <div class="col s2 m2">
+            <h4 class="right-align">Channels</h4>
+            <%if(channel.length>0){%>
+                <%for(var i=0;i<channel.length;i++){%>
+                    <div class="row">
+                        <div class="col s12 right-align">
+                            <a href="/f/<%=channel[i]%>"><%=channel[i]%></a>
+                        </div>
+                    </div>
+                <%}%>
             <%}%>
         </div>
     </div>

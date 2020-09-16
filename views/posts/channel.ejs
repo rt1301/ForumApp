@@ -1,0 +1,31 @@
+<%-include("../partials/header.ejs")%>
+<h3 class="center-align">
+    <%=channel%> Posts
+</h3>
+<p class="center-align">
+    Go <a href="/">Back</a>
+</p>
+<div class="row">
+    <div class="col s12">
+        <%if(posts.length>0){%>
+            <%for(var i=0;i<posts.length;i++){%>
+                <div class="container">
+                    <div class="row">
+                        <div class="col s12">
+                            <div class="card">
+                                <div class="card-content">
+                                    <h5><%=posts[i].title%></h5>
+                                    <h6>By: <strong><%=posts[i].author.username%></strong></h6>
+                                </div>
+                                <div class="card-action">
+                                    <a href="/f/<%=posts[i].channel%>/<%=posts[i]._id%>" class="waves-effect blue lighten-1 white-text btn">View</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <%}%>
+        <%}%>
+    </div>
+</div>
+<%-include("../partials/footer.ejs")%>

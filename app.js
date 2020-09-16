@@ -37,6 +37,14 @@ app.use(function(req, res, next){
 passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
+// Remove duplicate items in array
+function removeDuplicate(arr)
+{
+    var newArr = arr.filter((item,index)=>{
+        return arr.indexOf(item) === index;
+    })
+    return newArr;
+}
 // Root Route
 app.get("/",(req,res)=>{
     Post.find({},(err,foundPosts)=>{
@@ -47,7 +55,14 @@ app.get("/",(req,res)=>{
         }
         else
         {
-            res.render("index",{posts:foundPosts});
+            var channel = [];
+            var nonRepeatedChannel = [];
+            for(var i=0;i<foundPosts.length;i++)
+            {
+                channel.push(foundPosts[i].channel);
+            }
+            nonRepeatedChannel = removeDuplicate(channel);
+            res.render("index",{posts:foundPosts,channel:nonRepeatedChannel});
         }
     });
     
@@ -132,6 +147,20 @@ app.delete("/f/:channel/:id",checkPostOwnership,(req, res)=>{
         }
     });
 });
+// Channel Route
+app.get("/f/:channel",(req, res)=>{
+    Post.find({channel:req.params.channel},(err,foundPosts)=>{
+        if(err)
+        {
+            req.flash("error",err.message);
+            return res.redirect("back");
+        }
+        else
+        {
+            res.render("posts/channel",{posts:foundPosts,channel:req.params.channel});
+        }
+    })
+})
 // Comment Routes
 // Create New Comment
 app.get("/f/:channel/:id/comments/new",isLoggedIn,(req, res)=>{
@@ -143,7 +172,7 @@ app.get("/f/:channel/:id/comments/new",isLoggedIn,(req, res)=>{
         }
         else
         {
-            res.render("comments/new",{post:foundPost});
+            res.render("comments/new",{post:foundPost,thread:false});
         }
     });
 });
@@ -179,6 +208,59 @@ app.post("/f/:channel/:id/comments/new",isLoggedIn,(req, res)=>{
         }
     });
 });
+// Threads to comments
+app.get("/f/:channel/:postId/comments/:ids/new",isLoggedIn,(req, res)=>{
+    var ids = req.params.ids;
+    Post.findById(req.params.postId,(err,foundPost)=>{
+        if(err)
+        {
+            req.flash("error",err.message);
+            return res.redirect("back");
+        }
+        else
+        {
+            res.render("comments/new",{post:foundPost,thread:true,id:ids});
+        }
+    });
+});
+app.post("/f/:channel/:postId/comments/:ids/new",isLoggedIn,(req,res)=>{
+    var ids = req.params.ids;
+    var id = ids.split("+").filter((e)=>{return e!=""});
+    Post.findById(req.params.postId,(err,foundPost)=>{
+        if(err)
+        {
+            req.flash("error",err.message);
+            return res.redirect("back");
+        }
+        else
+        {
+            Comment.create(req.body.comment,(err,comment)=>{
+                if(err)
+                {
+                    req.flash("error",err.message);
+                    return res.redirect("back");
+                }
+                else
+                {
+                    comment.author.id = req.user._id;
+                    comment.author.username = req.user.username;
+                    for(var i=0;i<id.length;i++)
+                    {
+                        comment.parents.push(id[i]);
+                    }
+                    comment.parents.push(comment._id);
+                    comment.markModified('parents');
+                    comment.save();
+                    foundPost.comments.push(comment);
+                    foundPost.markModified('comments');
+                    foundPost.save();
+                    req.flash("success","Successfully added comment");
+                    res.redirect("/f/"+req.params.channel+"/"+req.params.postId);
+                }
+            });
+        }
+    });
+});
 // Edit Comment
 app.get("/f/:channel/:postId/comments/:id/edit",checkCommentOwnership,(req, res)=>{
     Comment.findById(req.params.id,(err,foundComment)=>{
@@ -207,20 +289,30 @@ app.put("/f/:channel/:postId/comments/:id",checkCommentOwnership,(req, res)=>{
         }
     });
 });
+
 // Delete Comment Route
 app.delete("/f/:channel/:postId/comments/:id",checkCommentOwnership,(req,res)=>{
-    Comment.findByIdAndRemove(req.params.id,(err)=>{
-        if(err)
-        {
-            req.flash("error",err.message);
-            return res.redirect("back");
-        }
-        else
-        {
-            req.flash("success","Comment Deleted");
-            res.redirect("/f/"+req.params.channel+"/"+req.params.postId);
-        }
-    });
+   Post.findById(req.params.postId,(err,foundPost)=>{
+       if(err)
+       {
+           console.log(err);
+       }
+       else
+       {
+        Comment.findByIdAndRemove(req.params.id,(err)=>{
+            if(err)
+            {
+                req.flash("error",err.message);
+                return res.redirect("back");
+            }
+            else
+            {
+                req.flash("success","Comment Deleted");
+                res.redirect("/f/"+req.params.channel+"/"+req.params.postId);
+            }
+        });
+       }
+   })
 });
 // ================
 // AUTH ROUTES
@@ -330,7 +422,7 @@ function checkCommentOwnership(req, res, next)
 {
 	if(req.isAuthenticated())
 		{
-			Comment.findById(req.params.comment_id,function(err, foundComment)
+			Comment.findById(req.params.id,function(err, foundComment)
     {
 		if(err)
 			{

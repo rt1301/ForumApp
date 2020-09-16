@@ -2,9 +2,10 @@
 <div class="container">
     <div class="row">
         <div class="col s12">
-            <h3 class="center-align"><%=post.title%></h3>
+            
             <div class="card">
                 <div class="card-content">
+                    <h4><%=post.title%></h4>
                     <p><%=post.description%></p>
                     <h5>By: <%=post.author.username%></h5>
                 </div>
@@ -21,8 +22,9 @@
         </div>
     </div>
     <%if(post.comments.length!=0){%>
+        <h5>Comments</h5>
         <%for(var i=0;i<post.comments.length;i++){%>
-            <h5>Comments</h5>
+            <%if(post.comments[i].parents.length === 1){%>
             <div class="row">
                 <div class="col s12">
                     <div class="card">
@@ -37,7 +39,31 @@
                                 <button class="btn waves-effect red lighten-1 white-text">Delete</button>
                             </form>
                             <%}%>
+                            <a href="/f/<%=post.channel%>/<%=post._id%>/comments/<%=post.comments[i]._id%>+/new" class="btn waves-effect blue lighten-1 white-text">Add new Comment</a>
                         </div>
+            <%}%>
+            <%for(var j=0;j<post.comments.length;j++){%>
+                <%if(post.comments[j].parents.length>1){%>
+                  <%if((post.comments[i]._id).toString() == (post.comments[j].parents[0])){%>
+                      <div class="col s11 offset-s1">
+                          <div class="card-content">
+                              <h6><strong><%=post.comments[j].text%></strong></h6>
+                              <p>By: <strong><%=post.comments[j].author.username%></strong></p>
+                          </div>
+                          <div class="card-action">
+                              <%if(currentUser && post.comments[j].author.id.equals(currentUser._id)){%>
+                              <a href="/f/<%=post.channel%>/<%=post._id%>/comments/<%=post.comments[j]._id%>/edit" class="btn waves-effect orange lighten-1  white-text">Edit</a>
+                              <form action="/f/<%=post.channel%>/<%=post._id%>/comments/<%=post.comments[j]._id%>?_method=DELETE" method="POST" style="display: inline;">
+                                  <button class="btn waves-effect red lighten-1 white-text">Delete</button>
+                              </form>
+                              <%}%>
+                          </div>
+                      </div>
+                  <%}%>
+                <%}%>
+
+                
+              <%}%>
                     </div>
                 </div>
             </div>
