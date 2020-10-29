@@ -9,7 +9,7 @@ const express               = require('express'),
       Comment               = require("./models/comments.js"),
       Post                  = require("./models/posts.js"),
       mongoose              = require('mongoose');
-      mongoose.connect("mongodb+srv://rt1301:radhavilla1301@cluster0.hc7tc.mongodb.net/Forum?retryWrites=true&w=majority",{ useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false, useCreateIndex:true }).then(()=>{
+      mongoose.connect("mongodb://localhost:27017/forum",{ useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false, useCreateIndex:true }).then(()=>{
         console.log("Connected to DB!");
     }).catch(err=>{
         console.log("Error: " + err.message);
